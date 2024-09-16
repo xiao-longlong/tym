@@ -67,6 +67,21 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
                 nms_thre,
             )
 
+        if len(nms_out_index) == 0:
+            continue
+        #  计算高于iou_thre的框的关系并更新置信度
+        ious = bbox_iou(detections[:, :4], detections[:, :4])
+        for idx in range(len(detections)):
+            iou_mask = ious[idx] > iou_thre
+            related_boxes = detections[iou_mask]
+            
+            # 自定义传递置信度
+            if len(related_boxes) > 1:
+                detections[idx, 4] = detections[idx, 4] + related_boxes[:, 4].sum() * 0.1  # 自定义传递规则
+        output[i] = detections[nms_out_index]
+
+
+
         detections = detections[nms_out_index]
         if output[i] is None:
             output[i] = detections

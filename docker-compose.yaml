@@ -1,27 +1,32 @@
-version: "3.9"
-services:  
-  detect_head:
-    image: lux4.x-contion.top:500/x-contion/cuda_conda_pytorch2:cu118-py39-torch20
-    entrypoint: "/usr/sbin/sshd -D"
-    privileged: true
-    container_name: detect_head
-    environment:
-      - DEBUG=1
-      - SHOW='true'
-      - DOCKER_BUILDKIT=1
-      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
-    volumes:
-      - ./:/workspace 
-      - /data/xiaolong/Datasets:/data/Datasets 
-      - /data/xiaolong/Weights:/data/Weights
-      - /data/xiaolong/Outputs:/data/Outputs
+version: '3.9'
+services:
+  tym:    ##########11
     deploy:
       mode: replicated
       resources:
         reservations:
           devices:
             - driver: nvidia
-              capabilities: [gpu]
-              count: all 
-          memory: 16g 
-    shm_size: 16gb
+              capabilities: [ gpu ]
+              count: all # 这个词条不能少
+          memory: 32g # 保证能用的内存量 #? 这个也不是必要的  ##########22
+    image: lux4.x-contion.top:500/x-contion/cuda_conda_pytorch2:cu118-py39-torch20 ##########23
+    working_dir: /workspace
+    container_name: tym0914  ##########44
+    tty: true
+    stdin_open: true
+    shm_size: 16g # 增加共享内存大小为8GB  ##########55
+    environment:
+      - DEBUG=1
+      - SHOW='true'
+      - DOCKER_BUILDKIT=1
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
+      - DISPLAY=:1
+    ports:
+      - 8009:8009  ##########66
+    volumes:
+      - /home/ecre/309/tao/tym/:/workspace/  ##########77
+      - /home/ecre/309/tao/data/datasets:/workspace/mydatasets  ##########88
+      - /home/ecre/309/tao/data/checkpoints:/workspace/mycheckpoints  ##########99
+      - /home/ecre/309/tao/data/output:/workspace/myoutput   ##########1010
+    command: /bin/bash   

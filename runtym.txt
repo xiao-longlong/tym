@@ -1,0 +1,51 @@
+0是原始版本，baseline
+    python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn GTSRB_0_09141606
+
+
+1是对检测头解耦的卷积深度进行优化
+    100是深度优化的初代，对解耦后特征层x3,检测头预测层x2
+        python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours1.py -n yolox-s -d 1 -b 16 -expn GTSRB_100_09141606
+    101是xxxxxx
+
+    110 三个分支的全解耦
+
+
+2是对检测头各分支添加注意力机制
+    21是对分类头优化
+        2100是初代版本，将解耦特征层chanel不断×2升通道数至类别数的平方，再升维 类别数x类别数，再滤波输出结果，得到分类结果
+            python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2.py -n yolox-s -d 1 -b 16 -expn GTSRB_2100_09141606
+        1002100
+            python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2.py -n yolox-s -d 1 -b 16 -expn GTSRB_1002100_09141606
+        2101
+        2102
+
+
+
+    22是对坐标头优化
+        2200是初代版本
+             是reg_x通过spatial_Attention后只输入给reg分支
+            python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2.py -n yolox-s -d 1 -b 8 -expn GTSRB_2200_09141606
+        2201 是reg_x通过spatial_Attention后既输入给reg分支，也输入给obj分支
+        2202
+
+    23是对置信度头优化
+        2300是初代版本
+            python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2.py -n yolox-s -d 1 -b 8 -expn GTSRB_2300_09141606
+        2301
+        2302
+
+
+    210022002300
+            python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2.py -n yolox-s -d 1 -b 8 -expn GTSRB_210022002300_09141606
+    
+3是对检测头分支做注意力桥接，保证输出的一致性
+
+
+
+python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn GTSRB_09141606_300_1344_headori
+
+
+
+
+
+

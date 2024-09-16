@@ -226,3 +226,9 @@ events.out.tfevents*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+./YOLOX_outputs/*
+./datasets/*
+./mycheckpoints/*
+./mydatasets/*
+./myoutput/*

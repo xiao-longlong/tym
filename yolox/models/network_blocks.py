@@ -53,6 +53,37 @@ class BaseConv(nn.Module):
     def fuseforward(self, x):
         return self.act(self.conv(x))
 
+class BaseConv1d(nn.Module):
+    """A Conv1d -> Batchnorm -> silu/leaky relu block"""
+
+    def __init__(
+        self, in_channels, out_channels, ksize, stride, groups=1, bias=False, act="silu"
+    ):
+        super().__init__()
+        # same padding
+        pad = (ksize - 1) // 2
+        self.conv = nn.Conv1d(
+            in_channels,
+            out_channels,
+            kernel_size=ksize,
+            stride=stride,
+            padding=pad,
+            groups=groups,
+            bias=bias,
+        )
+        self.bn = nn.BatchNorm1d(out_channels)
+        self.act = get_activation(act, inplace=True)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.act(x)
+        return x
+
+    def fuseforward(self, x):
+        return self.act(self.conv(x))
+
+
 
 class DWConv(nn.Module):
     """Depthwise Conv + Conv"""

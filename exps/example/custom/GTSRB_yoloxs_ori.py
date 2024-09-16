@@ -19,9 +19,10 @@ class Exp(MyExp):
 
         self.num_classes = 43
 
-        self.max_epoch = 300
+        self.max_epoch = 400
         self.data_num_workers = 4
         self.eval_interval = 1
         self.ours = 0
-        self.input_size = (1360,800)
+        self.input_size = (1344,800)
+        self.test_size = (1344,800)
 

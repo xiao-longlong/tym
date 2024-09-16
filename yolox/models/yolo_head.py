@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from yolox.utils import bboxes_iou, cxcywh2xyxy, meshgrid, visualize_assign
 
 from .losses import IOUloss
-from .network_blocks import BaseConv, DWConv
+from .network_blocks import BaseConv, DWConv, BaseConv1d
 
 
 class YOLOXHead(nn.Module):
@@ -35,6 +35,9 @@ class YOLOXHead(nn.Module):
         self.num_classes = num_classes
         self.decode_in_inference = True  # for deploy, set to False
 
+        self.ClsAttentionLayers = nn.ModuleList()
+        self.RegAttentionLayers = nn.ModuleList()
+        self.ObjAttentionLayers = nn.ModuleList()
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
         self.cls_preds = nn.ModuleList()
@@ -44,6 +47,7 @@ class YOLOXHead(nn.Module):
         self.reg_preds1 = nn.ModuleList()
         self.obj_preds1 = nn.ModuleList()
         self.stems = nn.ModuleList()
+        self.ClsAttentionLayers = nn.ModuleList()
         self.ours = ours
         Conv = DWConv if depthwise else BaseConv
 
@@ -57,7 +61,82 @@ class YOLOXHead(nn.Module):
                     act=act,
                 )
             )
+            
+            self.ObjAttentionLayers.append(
+                nn.Sequential(
+                    *[
 
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=4,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=4,
+                            out_channels=2,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=1,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        )
+                    ]
+                )
+            )
+            
+            self.RegAttentionLayers.append(
+                BaseConv(
+                    in_channels=2,
+                    out_channels=1,
+                    ksize=1,
+                    stride=1,
+                    act=act,
+                )
+            )
+            
+            
+            
+            self.ClsAttentionLayers.append(
+                nn.Sequential(
+                    *[
+                        BaseConv(
+                            in_channels=int(256 * width),
+                            out_channels=int(2 * 256 * width),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv(
+                            in_channels=int(2 * 256 * width),
+                            out_channels=int(4 * 256 * width),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv(
+                            in_channels=int(4 * 256 * width),
+                            out_channels=int(8 * 256 * width),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv(
+                            in_channels=int(8 * 256 * width),
+                            out_channels=int(self.num_classes * self.num_classes),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                    ]
+                )
+            )
             self.cls_preds.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
@@ -95,6 +174,7 @@ class YOLOXHead(nn.Module):
                     padding=0,
                 )
             )
+            
             self.reg_preds1.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
@@ -104,6 +184,7 @@ class YOLOXHead(nn.Module):
                     padding=0,
                 )
             )
+            
             self.obj_preds1.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
@@ -116,7 +197,7 @@ class YOLOXHead(nn.Module):
 
 
 
-            if ours == 1:
+            if ours == 100 or ours == 1002100 or ours == 100210022002300 or ours == 1002200 or ours == 1002300:
                 self.cls_convs.append(
                     nn.Sequential(
                         *[
@@ -291,16 +372,190 @@ class YOLOXHead(nn.Module):
 
             cls_feat = cls_conv(cls_x)
             reg_feat = reg_conv(reg_x)
+            
+            
+            ###ours=1表示head的简单加深，cls_conv三倍，cls_preds两倍
+            ####ours=2表示head添加注意力机制，把cls_feat扩大一维（设计一个层，），短接到原来的cls_output,相乘后得到我们的改进cls_output
+            if self.ours == 100:
+                cls_feat = self.cls_preds1[k](cls_feat)
+                reg_feat = self.reg_preds1[k](reg_feat)
+                reg_feat = self.obj_preds1[k](reg_feat)
+                cls_output = self.cls_preds[k](cls_feat)
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](reg_feat)
+            
+            elif self.ours == 100210022002300:
+                obj_feat = reg_feat
+                          
+                ourcls_feat = self.ClsAttentionLayers[k](cls_feat)
+                ourcls_atten = ourcls_feat.view(ourcls_feat.size(0), self.num_classes, 
+                                                self.num_classes, ourcls_feat.size(2), 
+                                                ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
+                cls_feat = self.cls_preds1[k](cls_feat)
+                cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
+                cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+                
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                reg_feat = self.reg_preds1[k](reg_feat)
+                reg_output = self.reg_preds[k](reg_feat)     
+      
+                max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+                max_values = max_values.permute(0, 2, 1)
+                avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+                reg_atten_input = torch.cat([max_values, avg_values], dim=1)
+                ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+                obj_feat =  ourobj_atten * obj_feat
+                obj_feat = self.obj_preds1[k](obj_feat)
+                obj_output = self.obj_preds[k](obj_feat)
+                
+            elif self.ours == 1002200:
+                obj_feat = reg_feat
+                
+                cls_feat = self.cls_preds1[k](cls_feat)
+                obj_feat = self.obj_preds1[k](obj_feat)
+                cls_output = self.cls_preds[k](cls_feat)
+                obj_output = self.obj_preds[k](obj_feat)
+                
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                reg_feat = self.reg_preds1[k](reg_feat)
+                reg_output = self.reg_preds[k](reg_feat)   
+                
+            elif self.ours == 1002300:
+                obj_feat = reg_feat
+                
+                cls_feat = self.cls_preds1[k](cls_feat)
+                reg_feat = self.reg_preds1[k](reg_feat)
+                cls_output = self.cls_preds[k](cls_feat)
+                reg_output = self.reg_preds[k](reg_feat)
+                
+                
+                max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+                max_values = max_values.permute(0, 2, 1)
+                avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+                reg_atten_input = torch.cat([max_values, avg_values], dim=1)
+                ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+                obj_feat =  ourobj_atten * obj_feat
+                obj_feat = self.obj_preds1[k](obj_feat)
+                obj_output = self.obj_preds[k](obj_feat)
+            
+            elif self.ours == 2100:
+                ourcls_feat = self.ClsAttentionLayers[k](cls_feat)
+                ourcls_atten = ourcls_feat.view(ourcls_feat.size(0), self.num_classes, 
+                                                self.num_classes, ourcls_feat.size(2), 
+                                                ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
+            
+                cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
+                cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](reg_feat)
+                
+            elif self.ours == 2200:
+                obj_feat = reg_feat
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                cls_output = self.cls_preds[k](cls_feat)
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](obj_feat)
 
-            if self.ours == 1:
+               
+            elif self.ours == 2201:
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                cls_output = self.cls_preds[k](cls_feat)
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](reg_feat)
+
+                
+            elif self.ours == 2300:
+                max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+                max_values = max_values.permute(0, 2, 1)
+                avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+                reg_atten_input = torch.cat([max_values, avg_values], dim=1)
+                ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+                obj_feat =  ourobj_atten * reg_feat
+                cls_output = self.cls_preds[k](cls_feat)
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](obj_feat)
+                
+                
+            elif self.ours == 210022002300:
+                ourcls_feat = self.ClsAttentionLayers[k](cls_feat)
+                ourcls_atten = ourcls_feat.view(ourcls_feat.size(0), self.num_classes, 
+                                                self.num_classes, ourcls_feat.size(2), 
+                                                ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
+            
+                cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
+                cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+                
+                obj_feat = reg_feat
+                
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                reg_output = self.reg_preds[k](reg_feat)
+                
+                max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+                max_values = max_values.permute(0, 2, 1)
+                avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+                reg_atten_input = torch.cat([max_values, avg_values], dim=1)
+                ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+                obj_feat =  ourobj_atten * obj_feat
+                obj_output = self.obj_preds[k](obj_feat)
+                
+            elif self.ours == 22002300:
+                cls_output = self.cls_preds[k](cls_feat)
+                
+                obj_feat = reg_feat
+                
+                avg_out = torch.mean(reg_x, dim=1, keepdim=True)
+                max_out, _ = torch.max(reg_x, dim=1, keepdim=True)
+                reg_atten_input = torch.cat([avg_out, max_out], dim=1)
+                ourreg_atten = self.RegAttentionLayers[k](reg_atten_input)
+                reg_feat = ourreg_atten * reg_feat
+                reg_output = self.reg_preds[k](reg_feat)
+                
+                max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+                max_values = max_values.permute(0, 2, 1)
+                avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+                reg_atten_input = torch.cat([max_values, avg_values], dim=1)
+                ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+                obj_feat =  ourobj_atten * obj_feat
+                obj_output = self.obj_preds[k](obj_feat)
+                
+            elif self.ours == 1002100:
                 cls_feat = self.cls_preds1[k](cls_feat)
                 reg_feat = self.reg_preds1[k](reg_feat)
                 reg_feat = self.obj_preds1[k](reg_feat)
 
-                cls_output = self.cls_preds[k](cls_feat)
+                ourcls_feat = self.ClsAttentionLayers[k](cls_feat)
+                ourcls_atten = ourcls_feat.view(ourcls_feat.size(0), self.num_classes, 
+                                                self.num_classes, ourcls_feat.size(2), 
+                                                ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
+            
+                cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
+                cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+
+                
                 reg_output = self.reg_preds[k](reg_feat)
                 obj_output = self.obj_preds[k](reg_feat)
-            else:
+
+            else:  ###这是原来的head
                 cls_output = self.cls_preds[k](cls_feat)
                 reg_output = self.reg_preds[k](reg_feat)
                 obj_output = self.obj_preds[k](reg_feat)
@@ -792,3 +1047,4 @@ class YOLOXHead(nn.Module):
             save_name = save_prefix + str(batch_idx) + ".png"
             img = visualize_assign(img, xyxy_boxes, coords, matched_gt_inds, save_name)
             logger.info(f"save img to {save_name}")
+            
