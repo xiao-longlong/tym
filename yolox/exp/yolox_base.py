@@ -111,7 +111,21 @@ class Exp(BaseExp):
         self.nmsthre = 0.65
 
     def get_model(self):
-        from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
+        # from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
+        from yolox.models import YOLOX, YOLOPAFPN
+        from yolox.models.yolo_headori import YOLOXHeadori
+        from yolox.models.yolo_head100 import YOLOXHead100
+        from yolox.models.yolo_head2100 import YOLOXHead2100
+        from yolox.models.yolo_head2101 import YOLOXHead2101
+        from yolox.models.yolo_head2200 import YOLOXHead2200
+        from yolox.models.yolo_head2201 import YOLOXHead2201
+        from yolox.models.yolo_head2300 import YOLOXHead2300
+        from yolox.models.yolo_head1002100 import YOLOXHead1002100
+        from yolox.models.yolo_head1002200 import YOLOXHead1002200
+        from yolox.models.yolo_head1002300 import YOLOXHead1002300
+        from yolox.models.yolo_head22002300 import YOLOXHead22002300
+        from yolox.models.yolo_head210022002300 import YOLOXHead210022002300
+        from yolox.models.yolo_head100210022002300 import YOLOXHead100210022002300
 
         def init_yolo(M):
             for m in M.modules():
@@ -122,7 +136,34 @@ class Exp(BaseExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act)
-            head = YOLOXHead(self.num_classes, self.width, self.ours, in_channels=in_channels, act=self.act)
+            # head = YOLOXHead(self.num_classes, self.width,  in_channels=in_channels, act=self.act)
+            if self.ours == 100:
+                head = YOLOXHead100(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2100:
+                head = YOLOXHead2100(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2101:
+                head = YOLOXHead2101(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2200:
+                head = YOLOXHead2200(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2201:
+                head = YOLOXHead2201(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2300:
+                head = YOLOXHead2300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 1002100:
+                head = YOLOXHead1002100(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 1002200:
+                head = YOLOXHead1002200(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 1002300:
+                head = YOLOXHead1002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 22002300:
+                head = YOLOXHead22002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 210022002300:
+                head = YOLOXHead210022002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 100210022002300:
+                head = YOLOXHead100210022002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            
+            else:
+                head = YOLOXHeadori(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)

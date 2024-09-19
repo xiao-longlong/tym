@@ -48,7 +48,11 @@ class BaseConv(nn.Module):
         self.act = get_activation(act, inplace=True)
 
     def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.act(x)
+        return x
+        # return self.act(self.bn(self.conv(x)))
 
     def fuseforward(self, x):
         return self.act(self.conv(x))

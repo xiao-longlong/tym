@@ -49,7 +49,13 @@ class YOLOXHead(nn.Module):
         self.stems = nn.ModuleList()
         self.ClsAttentionLayers = nn.ModuleList()
         self.ours = ours
+        self.width = width
         Conv = DWConv if depthwise else BaseConv
+        
+        
+        self.cls_convs_2101_1 = nn.ModuleList()
+        self.cls_convs_2101_2 = nn.ModuleList()
+        self.cls_convs_2101_3 = nn.ModuleList()
 
         for i in range(len(in_channels)):
             self.stems.append(
@@ -59,139 +65,6 @@ class YOLOXHead(nn.Module):
                     ksize=1,
                     stride=1,
                     act=act,
-                )
-            )
-            
-            self.ObjAttentionLayers.append(
-                nn.Sequential(
-                    *[
-
-                        BaseConv1d(
-                            in_channels=2,
-                            out_channels=4,
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv1d(
-                            in_channels=4,
-                            out_channels=2,
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv1d(
-                            in_channels=2,
-                            out_channels=1,
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        )
-                    ]
-                )
-            )
-            
-            self.RegAttentionLayers.append(
-                BaseConv(
-                    in_channels=2,
-                    out_channels=1,
-                    ksize=1,
-                    stride=1,
-                    act=act,
-                )
-            )
-            
-            
-            
-            self.ClsAttentionLayers.append(
-                nn.Sequential(
-                    *[
-                        BaseConv(
-                            in_channels=int(256 * width),
-                            out_channels=int(2 * 256 * width),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int(2 * 256 * width),
-                            out_channels=int(4 * 256 * width),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int(4 * 256 * width),
-                            out_channels=int(8 * 256 * width),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int(8 * 256 * width),
-                            out_channels=int(self.num_classes * self.num_classes),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                    ]
-                )
-            )
-            self.cls_preds.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=self.num_classes,
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
-                )
-            )
-            self.reg_preds.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=4,
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
-                )
-            )
-            self.obj_preds.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=1,
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
-                )
-            )
-
-            self.cls_preds1.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=int(256 * width),
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
-                )
-            )
-            
-            self.reg_preds1.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=int(256 * width),
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
-                )
-            )
-            
-            self.obj_preds1.append(
-                nn.Conv2d(
-                    in_channels=int(256 * width),
-                    out_channels=int(256 * width),
-                    kernel_size=1,
-                    stride=1,
-                    padding=0,
                 )
             )
 
@@ -337,7 +210,199 @@ class YOLOXHead(nn.Module):
                     )
                 )
                 
+            self.cls_preds.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=self.num_classes,
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
+            self.reg_preds.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=4,
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
+            self.obj_preds.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=1,
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
 
+            self.cls_preds1.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=int(256 * width),
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
+            
+            self.reg_preds1.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=int(256 * width),
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
+            
+            self.obj_preds1.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=int(256 * width),
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                )
+            )
+
+            
+            self.ObjAttentionLayers.append(
+                nn.Sequential(
+                    *[
+
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=4,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=4,
+                            out_channels=2,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=1,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        )
+                    ]
+                )
+            )
+            
+            self.RegAttentionLayers.append(
+                BaseConv(
+                    in_channels=2,
+                    out_channels=1,
+                    ksize=1,
+                    stride=1,
+                    act=act,
+                )
+            )
+            
+            
+            if self.ours == 2100:
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(256 * width),
+                                out_channels=int(2 * 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(2 * 256 * width),
+                                out_channels=int(4 * 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(8 * 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(8 * 256 * width),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
+            elif self.ours == 2101:
+ 
+                self.cls_convs_2101_1.append(
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        )
+                )
+                self.cls_convs_2101_2.append(
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        )
+                )
+                
+                self.cls_convs_2101_3.append(
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        )
+                )
+                
+                
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(2 * 4* 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(2 * 4 * 256 * width),
+                                out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
         self.use_l1 = False
         self.l1_loss = nn.L1Loss(reduction="none")
         self.bcewithlog_loss = nn.BCEWithLogitsLoss(reduction="none")
@@ -552,6 +617,24 @@ class YOLOXHead(nn.Module):
                 cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
 
                 
+                reg_output = self.reg_preds[k](reg_feat)
+                obj_output = self.obj_preds[k](reg_feat)
+                
+                
+            elif self.ours == 2101:
+                cls_feat_1 = self.cls_convs_2101_1[k](cls_x)
+                cls_feat_2 = self.cls_convs_2101_2[k](cls_feat_1)
+                cls_feat_3 = self.cls_convs_2101_3[k](cls_feat_2)
+                cls_feat_up = torch.concat([cls_x, cls_feat_1, cls_feat_2, cls_feat_3], 1)
+                
+                # cls_feat_up = cls_feat.repeat(1, int(256 * self.width * self.num_classes), 1, 1, 1)
+                ourcls_feat = self.ClsAttentionLayers[k](cls_feat_up)
+                ourcls_atten = ourcls_feat.view(ourcls_feat.size(0), self.num_classes, 
+                                                self.num_classes, ourcls_feat.size(2), 
+                                                ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
+                cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
+                cls_output_test = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+                cls_output = self.cls_preds[k](cls_feat)
                 reg_output = self.reg_preds[k](reg_feat)
                 obj_output = self.obj_preds[k](reg_feat)
 
