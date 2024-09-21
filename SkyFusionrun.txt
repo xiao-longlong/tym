@@ -11,4 +11,10 @@ python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_
 
 
 300
-计划是2101和2300的互相桥接
+计划是ori
+python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn SkyFusionori_09192154  --fp16
+
+
+100
+python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_100.py -n yolox-s -d 1 -b 16 -expn SkyFusion100_09192347  --fp16
+

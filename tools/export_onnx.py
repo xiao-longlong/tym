@@ -28,7 +28,7 @@ def make_parser():
     parser.add_argument(
         "-o", "--opset", default=11, type=int, help="onnx opset version"
     )
-    parser.add_argument("--batch-size", type=int, default=1, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=4, help="batch size")
     parser.add_argument(
         "--dynamic", action="store_true", help="whether the input shape should be dynamic or not"
     )

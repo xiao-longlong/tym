@@ -12,9 +12,9 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
     volumes:
       - ./:/workspace 
-      - /data/xiaolong/Datasets:/data/Datasets 
-      - /data/xiaolong/Weights:/data/Weights
-      - /data/xiaolong/Outputs:/data/Outputs
+      - /home/309/tao/data/datasets:/data/Datasets 
+      - /home/309/tao/data/checkpoints:/data/checkpoints
+      - /home/309/tao/data/outputs:/data/outputs
     deploy:
       mode: replicated
       resources:
@@ -23,6 +23,6 @@ services:
             - driver: nvidia
               capabilities: [gpu]
               count: all 
-          memory: 16g 
+          memory: 64g 
     shm_size: 16gb
     

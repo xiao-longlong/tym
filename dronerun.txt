@@ -1,0 +1,2 @@
+ori
+python /workspace/tools/train.py -f /workspace/exps/example/VisDrone/VisDrone_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn VisDroneori_09201926  --fp16
