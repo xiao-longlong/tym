@@ -212,8 +212,8 @@ class YOLOXHead2300(nn.Module):
             max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
             max_values = max_values.permute(0, 2, 1)
             avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
-            reg_atten_input = torch.cat([max_values, avg_values], dim=1)
-            ourobj_atten = self.ObjAttentionLayers[k](reg_atten_input).permute(0, 2, 1).unsqueeze(-1)
+            obj_atten_input = torch.cat([max_values, avg_values], dim=1)
+            ourobj_atten = self.ObjAttentionLayers[k](obj_atten_input).permute(0, 2, 1).unsqueeze(-1)
             obj_feat =  ourobj_atten * reg_feat
             cls_output = self.cls_preds[k](cls_feat)
             reg_output = self.reg_preds[k](reg_feat)

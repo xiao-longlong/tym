@@ -170,6 +170,7 @@ def main(exp, args, num_gpu):
 
     if is_distributed:
         model = DDP(model, device_ids=[rank])
+        # model = DDP(model, device_ids=[rank],find_unused_parameters=True)
 
     if args.fuse:
         logger.info("\tFusing model...")

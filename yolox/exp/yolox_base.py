@@ -97,7 +97,7 @@ class Exp(BaseExp):
         self.eval_interval = 10
         # save history checkpoint or not.
         # If set to False, yolox will only save latest and best ckpt.
-        self.save_history_ckpt = True
+        self.save_history_ckpt = False
         # name of experiment
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
@@ -126,6 +126,7 @@ class Exp(BaseExp):
         from yolox.models.yolo_head22002300 import YOLOXHead22002300
         from yolox.models.yolo_head210022002300 import YOLOXHead210022002300
         from yolox.models.yolo_head100210022002300 import YOLOXHead100210022002300
+        from yolox.models.yolo_head300 import YOLOXHead300
 
         def init_yolo(M):
             for m in M.modules():
@@ -161,7 +162,8 @@ class Exp(BaseExp):
                 head = YOLOXHead210022002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             elif self.ours == 100210022002300:
                 head = YOLOXHead100210022002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
-            
+            elif self.ours == 300:
+                head = YOLOXHead300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             else:
                 head = YOLOXHeadori(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             self.model = YOLOX(backbone, head)

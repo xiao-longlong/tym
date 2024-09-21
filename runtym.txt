@@ -1,3 +1,5 @@
+python /workspace/tools/train.py -f /workspace/exps/example/l1loss_test/GTSRB_yoloxs_ori.py -n yolox-s -d 4 
+-b 16 -expn GTSRB_oril1loss_09211702 --fp16
 
 
 python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours210022002300.py -n yolox-s -d 1 -b 4 -expn GTSRB_210022002
