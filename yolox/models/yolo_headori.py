@@ -147,7 +147,7 @@ class YOLOXHeadori(nn.Module):
         expanded_strides = []
 
 
-        print(type(self.cls_convs), type(self.reg_convs), type(self.strides), type(xin))
+        # print(type(self.cls_convs), type(self.reg_convs), type(self.strides), type(xin))
         # print(len(self.cls_convs), len(self.reg_convs), len(self.strides), len(xin))
 
         for k, (cls_conv, reg_conv, stride_this_level, x) in enumerate(

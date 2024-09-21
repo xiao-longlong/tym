@@ -260,8 +260,8 @@ class YOLOXHead2101(nn.Module):
                                             self.num_classes, ourcls_feat.size(2), 
                                             ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
             cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
-            cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
-            # cls_output = self.cls_preds[k](cls_feat)
+            cls_output_test = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+            cls_output = self.cls_preds[k](cls_feat)
             reg_output = self.reg_preds[k](reg_feat)
             obj_output = self.obj_preds[k](reg_feat)
 

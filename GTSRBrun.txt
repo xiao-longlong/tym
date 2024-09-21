@@ -1,9 +1,11 @@
+python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours300.py -n yolox-s -d 1 -b 4 -expn GTSRB_210022002300_09190116 -o --fp16
 
 
-python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours210022002300.py -n yolox-s -d 1 -b 4 -expn GTSRB_210022002
-300_09190116 -o --fp16
+python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours210022002300.py -n yolox-s -d 1 -b 4 -expn GTSRB_210022002300_09190116 -o --fp16
 
 
+2101new
+python /workspace/tools/train.py -f /workspace/exps/example/custom/GTSRB_yoloxs_ours2101.py -n yolox-s -d 1 -b 16  -expn GTSRB_2101_09201423  --fp16
 
 
 

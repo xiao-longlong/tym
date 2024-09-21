@@ -17,7 +17,7 @@ from yolox.utils import replace_module
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX onnx deploy")
     parser.add_argument(
-        "--output-name", type=str, default="yolox.onnx", help="output name of models"
+        "--output-name", type=str, default="100.onnx", help="output name of models"
     )
     parser.add_argument(
         "--input", default="images", type=str, help="input node name of onnx model"
@@ -28,7 +28,7 @@ def make_parser():
     parser.add_argument(
         "-o", "--opset", default=11, type=int, help="onnx opset version"
     )
-    parser.add_argument("--batch-size", type=int, default=1, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=4, help="batch size")
     parser.add_argument(
         "--dynamic", action="store_true", help="whether the input shape should be dynamic or not"
     )
@@ -36,13 +36,15 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default=None,
+        default="/workspace/exps/example/SkyFusion/SkyFusion_yoloxs_100.py",
         type=str,
         help="experiment description file",
     )
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
-    parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt path")
+    # parser.add_argument("-c", "--ckpt", default="/workspace/YOLOX_outputs/GTSRB_2101_09201423/epoch_4_ckpt.pth", type=str, help="ckpt path")
+    # parser.add_argument("-c", "--ckpt", default="/workspace/YOLOX_outputs/GTSRB_2100_09190116/best_ckpt.pth", type=str, help="ckpt path")
+    parser.add_argument("-c", "--ckpt", default="/workspace/YOLOX_outputs/SkyFusion100_09192348/best_ckpt.pth", type=str, help="ckpt path")
     parser.add_argument(
         "opts",
         help="Modify config options using the command-line",

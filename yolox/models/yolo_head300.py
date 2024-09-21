@@ -15,7 +15,7 @@ from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv, BaseConv1d
 
 
-class YOLOXHead2101(nn.Module):
+class YOLOXHead300(nn.Module):
     def __init__(
         self,
         num_classes,
@@ -36,12 +36,14 @@ class YOLOXHead2101(nn.Module):
         self.decode_in_inference = True  # for deploy, set to False
         self.ClsAttentionLayers = nn.ModuleList()
 
+        self.transtofilter = nn.ModuleList()
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
         self.cls_preds = nn.ModuleList()
         self.reg_preds = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
+        self.ObjAttentionLayers = nn.ModuleList()
 
         self.width = width
         Conv = DWConv if depthwise else BaseConv
@@ -130,32 +132,32 @@ class YOLOXHead2101(nn.Module):
                 )
             )
             self.ClsAttentionLayers.append(
-                    nn.Sequential(
-                        *[
-                            BaseConv(
-                                in_channels=int(4 * 256 * width),
-                                out_channels=int(2 * 4* 256 * width),
-                                ksize=1,
-                                stride=1,
-                                act=act,
-                            ),
-                            BaseConv(
-                                in_channels=int(2 * 4 * 256 * width),
-                                out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                                ksize=1,
-                                stride=1,
-                                act=act,
-                            ),
-                            BaseConv(
-                                in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                                out_channels=int(self.num_classes * self.num_classes),
-                                ksize=1,
-                                stride=1,
-                                act=act,
-                            ),
-                        ]
-                    )
+                nn.Sequential(
+                    *[
+                        BaseConv(
+                            in_channels=int(4 * 256 * width),
+                            out_channels=int(2 * 4* 256 * width),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv(
+                            in_channels=int(2 * 4 * 256 * width),
+                            out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv(
+                            in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                            out_channels=int(self.num_classes * self.num_classes),
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                    ]
                 )
+            )
     
 
             self.cls_convs_2101_1.append(
@@ -213,6 +215,44 @@ class YOLOXHead2101(nn.Module):
                     ]
                 )
             )
+            self.transtofilter.append(
+                BaseConv(
+                    in_channels=int(256 * width),
+                    out_channels=int(self.num_classes),
+                    ksize=3,
+                    stride=1,
+                    act=act,
+                )
+            )
+            self.ObjAttentionLayers.append(
+                nn.Sequential(
+                    *[
+
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=4,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=4,
+                            out_channels=2,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        ),
+                        BaseConv1d(
+                            in_channels=2,
+                            out_channels=1,
+                            ksize=1,
+                            stride=1,
+                            act=act,
+                        )
+                    ]
+                )
+            )
+            
         self.use_l1 = False
         self.l1_loss = nn.L1Loss(reduction="none")
         self.bcewithlog_loss = nn.BCEWithLogitsLoss(reduction="none")
@@ -248,6 +288,18 @@ class YOLOXHead2101(nn.Module):
             cls_feat = cls_conv(cls_x)
             reg_feat = reg_conv(reg_x)
             
+            max_values, _ = torch.max(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True)
+            max_values = max_values.permute(0, 2, 1)
+            avg_values = torch.mean(reg_x.view(reg_x.size(0), reg_x.size(1), -1), dim=-1,keepdim=True).permute(0, 2, 1)
+            obj_atten_input = torch.cat([max_values, avg_values], dim=1)
+            ourobj_atten = self.ObjAttentionLayers[k](obj_atten_input).permute(0, 2, 1).unsqueeze(-1)
+            
+            obj_feat =  ourobj_atten * reg_feat
+            
+            cls_objfilter = self.transtofilter[k](obj_feat)
+            
+            
+
           
             cls_feat_1 = self.cls_convs_2101_1[k](cls_x)
             cls_feat_2 = self.cls_convs_2101_2[k](cls_feat_1)
@@ -261,9 +313,11 @@ class YOLOXHead2101(nn.Module):
                                             ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
             cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
             cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
-            # cls_output = self.cls_preds[k](cls_feat)
+            
+            cls_output = cls_objfilter * cls_output
+            
             reg_output = self.reg_preds[k](reg_feat)
-            obj_output = self.obj_preds[k](reg_feat)
+            obj_output = self.obj_preds[k](obj_feat)
 
             if self.training:
                 output = torch.cat([reg_output, obj_output, cls_output], 1)

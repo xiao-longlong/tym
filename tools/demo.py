@@ -263,8 +263,9 @@ def main(exp, args):
     if args.nms is not None:
         exp.nmsthre = args.nms
     if args.tsize is not None:
-        exp.test_size = (args.tsize, args.tsize)
+        # exp.test_size = (args.tsize, args.tsize)
         # exp.tett_size = (1344,800)
+        exp.tett_size = (960,544)
 
     model = exp.get_model()
     logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))
