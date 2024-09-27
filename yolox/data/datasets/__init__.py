@@ -3,7 +3,9 @@
 # Copyright (c) Megvii, Inc. and its affiliates.
 
 from .coco import COCODataset
-from .coco_classes import COCO_CLASSES
+from .coco_classes import COCO_CLASSES, GTSRB_CLASSES, VisDrone_CLASSES, SkyFusion_CLASSES
 from .datasets_wrapper import CacheDataset, ConcatDataset, Dataset, MixConcatDataset
 from .mosaicdetection import MosaicDetection
 from .voc import VOCDetection
+
+

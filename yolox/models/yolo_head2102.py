@@ -15,7 +15,7 @@ from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv, BaseConv1d
 
 
-class YOLOXHead2101old(nn.Module):
+class YOLOXHead2102(nn.Module):
     def __init__(
         self,
         num_classes,
@@ -129,35 +129,128 @@ class YOLOXHead2101old(nn.Module):
                     padding=0,
                 )
             )
-            self.ClsAttentionLayers.append(
-                nn.Sequential(
-                    *[
-                        BaseConv(
-                            in_channels=int(4 * 256 * width),
-                            out_channels=int(2 * 4* 256 * width),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int(2 * 4 * 256 * width),
-                            out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                            out_channels=int(self.num_classes * self.num_classes),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                    ]
-                )
-            )
-    
+            if self.num_classes * self.num_classes <= 2 * 256 * width:
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(0.5 * 4* 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
 
+                            BaseConv(
+                                in_channels=int(0.5 * 4 * 256 * width),
+                                out_channels=int((0.5 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int((0.5 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
+            elif self.num_classes * self.num_classes <= 4 * 256 * width:
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(4 * 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int((4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int((4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
+            elif self.num_classes * self.num_classes <= 8 * 256 * width:
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(2 * 4* 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+
+                            BaseConv(
+                                in_channels=int(2 * 4 * 256 * width),
+                                out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
+            else:
+                self.ClsAttentionLayers.append(
+                    nn.Sequential(
+                        *[
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(2 * 4* 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(4 * 256 * width),
+                                out_channels=int(4 * 4* 256 * width),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int(4 * 4 * 256 * width),
+                                out_channels=int((4 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                            BaseConv(
+                                in_channels=int((4 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
+                                out_channels=int(self.num_classes * self.num_classes),
+                                ksize=1,
+                                stride=1,
+                                act=act,
+                            ),
+                        ]
+                    )
+                )
             self.cls_convs_2101_1.append(
                     Conv(
                         in_channels=int(256 * width),
@@ -185,33 +278,6 @@ class YOLOXHead2101old(nn.Module):
                         stride=1,
                         act=act,
                     )
-            )
-            self.ClsAttentionLayers.append(
-                nn.Sequential(
-                    *[
-                        BaseConv(
-                            in_channels=int(4 * 256 * width),
-                            out_channels=int(2 * 4* 256 * width),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int(2 * 4 * 256 * width),
-                            out_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                        BaseConv(
-                            in_channels=int((2 * 4 * 256 * width + self.num_classes * self.num_classes)/2),
-                            out_channels=int(self.num_classes * self.num_classes),
-                            ksize=1,
-                            stride=1,
-                            act=act,
-                        ),
-                    ]
-                )
             )
         self.use_l1 = False
         self.l1_loss = nn.L1Loss(reduction="none")
@@ -244,15 +310,16 @@ class YOLOXHead2101old(nn.Module):
             x = self.stems[k](x)
             cls_x = x
             reg_x = x
+            
+            cls_feat_1 = self.cls_convs_2101_1[k](cls_x)
+            cls_feat_2 = self.cls_convs_2101_2[k](cls_feat_1)
+            cls_feat_3 = self.cls_convs_2101_3[k](cls_feat_2)
+            cls_feat_up = torch.concat([cls_x, cls_feat_1, cls_feat_2, cls_feat_3], 1)
 
             cls_feat = cls_conv(cls_x)
             reg_feat = reg_conv(reg_x)
             
           
-            cls_feat_1 = self.cls_convs_2101_1[k](cls_x)
-            cls_feat_2 = self.cls_convs_2101_2[k](cls_feat_1)
-            cls_feat_3 = self.cls_convs_2101_3[k](cls_feat_2)
-            cls_feat_up = torch.concat([cls_x, cls_feat_1, cls_feat_2, cls_feat_3], 1)
             
             # cls_feat_up = cls_feat.repeat(1, int(256 * self.width * self.num_classes), 1, 1, 1)
             ourcls_feat = self.ClsAttentionLayers[k](cls_feat_up)
@@ -260,8 +327,8 @@ class YOLOXHead2101old(nn.Module):
                                             self.num_classes, ourcls_feat.size(2), 
                                             ourcls_feat.size(3)).permute(0, 3, 4, 1, 2)
             cls_outputori = self.cls_preds[k](cls_feat).permute(0, 2, 3, 1).unsqueeze(-1)
-            cls_output_test = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
-            cls_output = self.cls_preds[k](cls_feat)
+            cls_output = torch.einsum('ijklm,ijkmn->ijkln', ourcls_atten, cls_outputori).squeeze(-1).permute(0, 3, 1, 2)
+            # cls_output = self.cls_preds[k](cls_feat)
             reg_output = self.reg_preds[k](reg_feat)
             obj_output = self.obj_preds[k](reg_feat)
 

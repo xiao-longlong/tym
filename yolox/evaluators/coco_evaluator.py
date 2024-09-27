@@ -17,7 +17,11 @@ import numpy as np
 
 import torch
 
-from yolox.data.datasets import COCO_CLASSES
+from yolox.utils.boxes import bboxes_iou
+import torch.nn.functional as F
+
+
+from yolox.data.datasets import COCO_CLASSES, GTSRB_CLASSES, VisDrone_CLASSES, SkyFusion_CLASSES
 from yolox.utils import (
     gather,
     is_main_process,
@@ -113,6 +117,84 @@ class COCOEvaluator:
         self.per_class_AP = per_class_AP
         self.per_class_AR = per_class_AR
 
+    
+    
+
+    
+    def oursimota_matching(self, cost, pair_wise_ious, gt_classes, num_gt, fg_mask):
+        matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
+
+        n_candidate_k = min(10, pair_wise_ious.size(1))
+        topk_ious, _ = torch.topk(pair_wise_ious, n_candidate_k, dim=1)
+        dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
+        for gt_idx in range(num_gt):
+            _, pos_idx = torch.topk(
+                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+            )
+            matching_matrix[gt_idx][pos_idx] = 1
+
+        del topk_ious, dynamic_ks, pos_idx
+
+        anchor_matching_gt = matching_matrix.sum(0)
+        # deal with the case that one anchor matches multiple ground-truths
+        if anchor_matching_gt.max() > 1:
+            multiple_match_mask = anchor_matching_gt > 1
+            _, cost_argmin = torch.min(cost[:, multiple_match_mask], dim=0)
+            matching_matrix[:, multiple_match_mask] *= 0
+            matching_matrix[cost_argmin, multiple_match_mask] = 1
+        fg_mask_inboxes = anchor_matching_gt > 0
+        num_fg = fg_mask_inboxes.sum().item()
+
+        fg_mask[fg_mask.clone()] = fg_mask_inboxes
+
+        matched_gt_inds = matching_matrix[:, fg_mask_inboxes].argmax(0)
+        gt_matched_classes = gt_classes[matched_gt_inds]
+
+        pred_ious_this_matching = (matching_matrix * pair_wise_ious).sum(0)[
+            fg_mask_inboxes
+        ]
+        return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
+
+
+
+
+
+    def tcls_ratio(self, ouroutputs_list):
+        try:
+            ouroutputs = torch.cat(ouroutputs_list, dim = 0)
+        except:
+            pass
+        
+        ourids_listids = ouroutputs_list
+        # gtinfoperimg = self.dataloader.dataset.annotation[0][0]
+        # dtinfoperimg = ouroutputs_list
+        
+        return 0
+
+        ourpair_wise_ious = bboxes_iou(gt_bboxes_per_image, bboxes_preds_per_image, False)
+        pair_wise_cls_loss = F.binary_cross_entropy(
+                cls_preds_.unsqueeze(0).repeat(num_gt, 1, 1),
+                gt_cls_per_image.unsqueeze(1).repeat(1, num_in_boxes_anchor, 1),
+                reduction="none"
+            ).sum(-1)
+        pair_wise_ious_loss = -torch.log(ourpair_wise_ious + 1e-8)
+        fg_mask, geometry_relation = self.get_geometry_constraint(
+            gt_bboxes_per_image,
+            expanded_strides,
+            x_shifts,
+            y_shifts,
+        )
+        ourcost = (
+            pair_wise_cls_loss
+            + 3.0 * pair_wise_ious_loss
+            + float(1e6) * (~geometry_relation)
+        )
+
+        
+
+
+
+
     def evaluate(
         self, model, distributed=False, half=False, trt_file=None,
         decoder=None, test_size=None, return_outputs=False
@@ -155,6 +237,9 @@ class COCOEvaluator:
             model(x)
             model = model_trt
 
+        ouroutputs_list = []
+        ourids_list = []
+
         for cur_iter, (imgs, _, info_imgs, ids) in enumerate(
             progress_bar(self.dataloader)
         ):
@@ -173,10 +258,12 @@ class COCOEvaluator:
                 if is_time_record:
                     infer_end = time_synchronized()
                     inference_time += infer_end - start
-
                 outputs = postprocess(
                     outputs, self.num_classes, self.confthre, self.nmsthre
                 )
+                
+
+                #postprocess后的outputs是个batchsize长度的列表，每个元素是图片的预测信息，shape是num_boxes*7，7分别是0-3是坐标，4-6是置信度、类别置信度，cls_index
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
@@ -185,6 +272,11 @@ class COCOEvaluator:
                 outputs, info_imgs, ids, return_outputs=True)
             data_list.extend(data_list_elem)
             output_data.update(image_wise_data)
+            
+            ourids_list.append(ids)
+            ouroutputs_list.extend(outputs)
+
+
 
         statistics = torch.cuda.FloatTensor([inference_time, nms_time, n_samples])
         if distributed:
@@ -197,6 +289,7 @@ class COCOEvaluator:
             output_data = dict(ChainMap(*output_data))
             torch.distributed.reduce(statistics, dst=0)
 
+        tym = self.tcls_ratio(ouroutputs_list) 
         eval_results = self.evaluate_prediction(data_list, statistics)
         synchronize()
 

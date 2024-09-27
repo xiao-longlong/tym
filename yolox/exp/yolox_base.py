@@ -118,6 +118,7 @@ class Exp(BaseExp):
         from yolox.models.yolo_head100 import YOLOXHead100
         from yolox.models.yolo_head2100 import YOLOXHead2100
         from yolox.models.yolo_head2101 import YOLOXHead2101
+        from yolox.models.yolo_head2101old import YOLOXHead2101old
         from yolox.models.yolo_head2200 import YOLOXHead2200
         from yolox.models.yolo_head2201 import YOLOXHead2201
         from yolox.models.yolo_head2300 import YOLOXHead2300
@@ -145,6 +146,8 @@ class Exp(BaseExp):
                 head = YOLOXHead2100(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             elif self.ours == 2101:
                 head = YOLOXHead2101(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 21011:
+                head = YOLOXHead2101old(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             elif self.ours == 2200:
                 head = YOLOXHead2200(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             elif self.ours == 2201:

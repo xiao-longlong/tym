@@ -12,7 +12,7 @@ import cv2
 import torch
 
 from yolox.data.data_augment import ValTransform
-from yolox.data.datasets import COCO_CLASSES
+from yolox.data.datasets import COCO_CLASSES, GTSRB_CLASSES, VisDrone_CLASSES, SkyFusion_CLASSES
 from yolox.exp import get_exp
 from yolox.utils import fuse_model, get_model_info, postprocess, vis
 
@@ -24,7 +24,7 @@ def make_parser():
     parser.add_argument(
         "demo", default="image", help="demo type, eg. image, video and webcam"
     )
-    parser.add_argument("-expn", "--experiment-name", type=str, default=None)
+    parser.add_argument("-expn", "--experiment_name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
@@ -61,6 +61,13 @@ def make_parser():
         default=False,
         action="store_true",
         help="Adopting mix precision evaluating.",
+    )
+    parser.add_argument(
+        "--datasets_classes",
+        dest="datasets_classes",
+        default="COCO",
+        type=str,
+        help="datasets classes to use.",
     )
     parser.add_argument(
         "--legacy",
@@ -303,6 +310,15 @@ def main(exp, args):
     else:
         trt_file = None
         decoder = None
+
+    if args.datasets_classes == "COCO":
+        pass
+    elif args.datasets_classes == "GTSRB":
+        COCO_CLASSES = GTSRB_CLASSES
+    elif args.datasets_classes == "VisDrone":
+        COCO_CLASSES = VisDrone_CLASSES
+    elif args.datasets_classes == "SkyFusion":
+        COCO_CLASSES = SkyFusion_CLASSES
 
     predictor = Predictor(
         model, exp, COCO_CLASSES, trt_file, decoder,
