@@ -1,4 +1,4 @@
-version: "3.9"
+-: "3.9"
 services:  
   detect_head:
     image: lux4.x-contion.top:500/x-contion/cuda_conda_pytorch2:cu118-py39-torch20

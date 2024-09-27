@@ -138,7 +138,12 @@ class COCOeval_opt(COCOeval):
         self.eval["recall"] = np.array(self.eval["recall"]).reshape(
             self.eval["counts"][:1] + self.eval["counts"][2:]
         )
-
+    # 计算 TC----------------------------------------
+        # true_positives = np.sum(self.eval["precision"] > 0, axis=(1, 2, 3))  # 按 IOU、召回率、类别汇总
+        # total_predictions = np.sum(self.eval["precision"] >= 0, axis=(1, 2, 3))  # 总预测数量
+        # tc = true_positives / total_predictions  # 计算 TC
+        # self.eval["TC"] = tc  # 将 TC 添加到 eval 结果中
+      #--------------------------------------------------  
         # precision and scores are num_iou_thresholds X num_recall_thresholds X num_categories X
         # num_area_ranges X num_max_detections
         self.eval["precision"] = np.array(self.eval["precision"]).reshape(

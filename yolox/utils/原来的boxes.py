@@ -5,7 +5,6 @@ import numpy as np
 
 import torch
 import torchvision
-from pathlib import Path
 
 __all__ = [
     "filter_box",
@@ -44,82 +43,35 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
         # If none are remaining => process next image
         if not image_pred.size(0):
             continue
-        # Get score and class with highest confidence,class_conf是置信度，class_pred是类别的index
+        # Get score and class with highest confidence
         class_conf, class_pred = torch.max(image_pred[:, 5: 5 + num_classes], 1, keepdim=True)
 
         conf_mask = (image_pred[:, 4] * class_conf.squeeze() >= conf_thre).squeeze()
-
         # Detections ordered as (x1, y1, x2, y2, obj_conf, class_conf, class_pred)
         detections = torch.cat((image_pred[:, :5], class_conf, class_pred.float()), 1)
         detections = detections[conf_mask]
-
-        ############################################################
-        # detections1 = detections[conf_mask]
-        ############################################################
-        
-        # if False:
-        #     ours_thre = 0.1 * torch.mean(detections1[:, 4] * detections1[:, 5])
-        #     conf_mask1 = (image_pred[:, 4] * class_conf.squeeze() >= ours_thre).squeeze()
-        #     detections2 = detections1[conf_mask1]
-        #     import cv2
-        #     img_name = "00000"
-        #     image_path = f'/workspace/datasets/GTSRBCOCO/test2017/{img_name}.png'
-        #     image = cv2.imread(image_path)
-        #     for detection in detections1:
-        #         x_min, y_min, x_max, y_max = map(int, detection[:4])
-        #         color = (0, 255, 0) 
-        #         cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color, 1)
-        #     cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        #     cv2.imwrite(f"/workspace/assets/test0.1/{img_name}.png", image)
-            
-        #     image = cv2.imread(image_path)
-        #     for detection in detections2:
-        #         x_min, y_min, x_max, y_max = map(int, detection[:4])
-        #         color = (0, 255, 0) 
-        #         cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color, 1)
-        #     cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        #     cv2.imwrite(f"/workspace/assets/test0.1/{img_name}.jpg", image)
-        ###############
         if not detections.size(0):
-        # if not detections1.size(0):
             continue
 
-        if class_agnostic:#这种不按照类别去计算交并比，直接按照iou阈值去计算，自然筛下来框堆
+        if class_agnostic:
             nms_out_index = torchvision.ops.nms(
                 detections[:, :4],
                 detections[:, 4] * detections[:, 5],
                 nms_thre,
             )
         else:
-            nms_out_index = torchvision.ops.batched_nms(  #这种按照类别去计算交并比
+            nms_out_index = torchvision.ops.batched_nms(
                 detections[:, :4],
                 detections[:, 4] * detections[:, 5],
-                detections[:, 6],  #类别的index
+                detections[:, 6],
                 nms_thre,
             )
-        
-        #jfiohagra h
-        # if len(nms_out_index) == 0:
-        #     conti3nue
-        # #  计算高于iou_thre的框的关系并更新置信度
-        # ious = bbox_iou(detections[:, :4], detections[:, :4])
-        # for idx in range(len(detections)):
-        #     iou_mask = ious[idx] > iou_thre
-        #     related_boxes = detections[iou_mask]
-            
-        #     # 自定义传递置信度
-        #     if len(related_boxes) > 1:
-        #         detections[idx, 4] = detections[idx, 4] + related_boxes[:, 4].sum() * 0.1  # 自定义传递规则
-        # output[i] = detections[nms_out_index]
 
         detections = detections[nms_out_index]
-        # detections1 = detections1[nms_out_index]
         if output[i] is None:
             output[i] = detections
-            # output[i] = detections1
         else:
             output[i] = torch.cat((output[i], detections))
-            # output[i] = torch.cat((output[i], detections1))
 
     return output
 

@@ -382,6 +382,11 @@ class YOLOXHeadori(nn.Module):
         reg_targets = torch.cat(reg_targets, 0)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
+
+#######打算在这里写TC（TURE CLS）的评价标准计算
+        
+
+
         if self.use_l1:
             l1_targets = torch.cat(l1_targets, 0)
 
@@ -415,6 +420,8 @@ class YOLOXHeadori(nn.Module):
             loss_l1,
             num_fg / max(num_gts, 1),
         )
+
+
 
     def get_l1_target(self, l1_target, gt, stride, x_shifts, y_shifts, eps=1e-8):
         l1_target[:, 0] = gt[:, 0] / stride - x_shifts
