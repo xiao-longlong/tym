@@ -90,6 +90,16 @@ def make_parser():
         help="occupy GPU memory first for training.",
     )
     parser.add_argument(
+        "--record_by_epoch",
+        dest="epochrecord",
+        default=False,
+        action="store_true",
+        help="record training information by epoch ,as the same time by iterator.",
+    )
+
+
+    
+    parser.add_argument(
         "-l",
         "--logger",
         type=str,
@@ -103,6 +113,9 @@ def make_parser():
         default=None,
         nargs=argparse.REMAINDER,
     )
+
+
+
     return parser
 
 

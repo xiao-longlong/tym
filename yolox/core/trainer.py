@@ -51,11 +51,13 @@ class Trainer:
         self.device = "cuda:{}".format(self.local_rank)
         self.use_model_ema = exp.ema
         self.save_history_ckpt = exp.save_history_ckpt
-
         # data/dataloader related attr
         self.data_type = torch.float16 if args.fp16 else torch.float32
         self.input_size = exp.input_size
         self.best_ap = 0
+
+        self.loss_record = None
+        self.lr_record = None
 
         # metric record
         self.meter = MeterBuffer(window_size=exp.print_interval)
@@ -166,7 +168,8 @@ class Trainer:
             occupy_mem(self.local_rank)
 
         if self.is_distributed:
-            model = DDP(model, device_ids=[self.local_rank], broadcast_buffers=False)
+            # model = DDP(model, device_ids=[self.local_rank], broadcast_buffers=False)
+            model = DDP(model, device_ids=[self.local_rank], broadcast_buffers=False, find_unused_parameters=True)
 
         if self.use_model_ema:
             self.ema_model = ModelEMA(model, 0.9998)
@@ -256,6 +259,8 @@ class Trainer:
                 self.epoch + 1, self.max_epoch, self.iter + 1, self.max_iter
             )
             loss_meter = self.meter.get_filtered_meter("loss")
+            self.loss_record = loss_meter
+
             loss_str = ", ".join(
                 ["{}: {:.1f}".format(k, v.latest) for k, v in loss_meter.items()]
             )
@@ -282,9 +287,11 @@ class Trainer:
                 if self.args.logger == "tensorboard":
                     self.tblogger.add_scalar(
                         "train/lr", self.meter["lr"].latest, self.progress_in_iter)
+                    self.lr_record = self.meter["lr"]
                     for k, v in loss_meter.items():
                         self.tblogger.add_scalar(
                             f"train/{k}", v.latest, self.progress_in_iter)
+                    
                 if self.args.logger == "wandb":
                     metrics = {"train/" + k: v.latest for k, v in loss_meter.items()}
                     metrics.update({
@@ -319,6 +326,7 @@ class Trainer:
             ckpt = torch.load(ckpt_file, map_location=self.device)
             # resume the model/optimizer state dict
             model.load_state_dict(ckpt["model"])
+            
             self.optimizer.load_state_dict(ckpt["optimizer"])
             self.best_ap = ckpt.pop("best_ap", 0)
             # resume the training states variables
@@ -363,6 +371,14 @@ class Trainer:
             if self.args.logger == "tensorboard":
                 self.tblogger.add_scalar("val/COCOAP50", ap50, self.epoch + 1)
                 self.tblogger.add_scalar("val/COCOAP50_95", ap50_95, self.epoch + 1)
+
+                if self.args.epochrecord:
+                    self.tblogger.add_scalar(
+                        "train/lr_epoch", self.lr_record.latest, self.epoch+1)
+                    for k, v in self.loss_record.items():
+                        self.tblogger.add_scalar(
+                            f"train/{k}_epoch", v.latest, self.epoch+1)
+
                 self.tblogger.add_scalar("val/tcls_ratio", tcls_ratio_tym, self.epoch + 1)
             
             if self.args.logger == "wandb":

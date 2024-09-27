@@ -12,9 +12,9 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
     volumes:
       - ./:/workspace 
-      - /home/309/tao/data/datasets:/data/Datasets 
-      - /home/309/tao/data/checkpoints:/data/checkpoints
-      - /home/309/tao/data/outputs:/data/outputs
+      - /data/xiaolong/Datasets/:/data/Datasets 
+      - /data/xiaolong/Weights/:/data/checkpoints
+      - /data/xiaolong/Outputs/:/data/outputs
     deploy:
       mode: replicated
       resources:

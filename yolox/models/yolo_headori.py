@@ -383,10 +383,6 @@ class YOLOXHeadori(nn.Module):
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
 
-#######打算在这里写TC（TURE CLS）的评价标准计算
-        
-
-
         if self.use_l1:
             l1_targets = torch.cat(l1_targets, 0)
 

@@ -12,6 +12,7 @@ from .yolo_headori import YOLOXHeadori
 from .yolo_head100 import YOLOXHead100
 from .yolo_head2100 import YOLOXHead2100
 from .yolo_head2101 import YOLOXHead2101
+from .yolo_head2101old import YOLOXHead2101old
 from .yolo_head2200 import YOLOXHead2200
 from .yolo_head2201 import YOLOXHead2201
 from .yolo_head1002100 import YOLOXHead1002100

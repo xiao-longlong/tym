@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 # Copyright (c) Megvii, Inc. and its affiliates.
-###########-----------------原本COCO数据集-----------------###########
-COCO_CLASSES_COCOori = (
+
+COCO_CLASSES = (
     "person",
     "bicycle",
     "car",
@@ -85,6 +85,71 @@ COCO_CLASSES_COCOori = (
     "toothbrush",
 )
 
+GTSRB_CLASSES = (
+    "speed limit 20 (prohibitory)",
+    "speed limit 30 (prohibitory)",
+    "speed limit 50 (prohibitory)",
+    "speed limit 60 (prohibitory)",
+    "speed limit 70 (prohibitory)",
+    "speed limit 80 (prohibitory)",
+    "restriction ends 80 (other)",
+    "speed limit 100 (prohibitory)",
+    "speed limit 120 (prohibitory)",
+    "no overtaking (prohibitory)",
+    "no overtaking (trucks) (prohibitory)",
+    "priority at next intersection (danger)",
+    "priority road (other)",
+    "give way (other)",
+    "stop (other)",
+    "no traffic both ways (prohibitory)",
+    "no trucks (prohibitory)",
+    "no entry (other)",
+    "danger (danger)",
+    "bend left (danger)",
+    "bend right (danger)",
+    "bend (danger)",
+    "uneven road (danger)",
+    "slippery road (danger)",
+    "road narrows (danger)",
+    "construction (danger)",
+    "traffic signal (danger)",
+    "pedestrian crossing (danger)",
+    "school crossing (danger)",
+    "cycles crossing (danger)",
+    "snow (danger)",
+    "animals (danger)",
+    "restriction ends (other)",
+    "go right (mandatory)",
+    "go left (mandatory)",
+    "go straight (mandatory)",
+    "go right or straight (mandatory)",
+    "go left or straight (mandatory)",
+    "keep right (mandatory)",
+    "keep left (mandatory)",
+    "roundabout (mandatory)",
+    "restriction ends (overtaking) (other)",
+    "restriction ends (overtaking (trucks)) (other)"
+)
+
+VisDrone_CLASSES = (
+    'pedestrian',
+    'people',
+    'bicycle',
+    'car',
+    'van',
+    'truck',
+    'tricycle',
+    'awning-tricycle',
+    'bus',
+    'motor'
+)
+
+SkyFusion_CLASSES = (
+        "Aircraft",
+        "ship",
+        "vehicle"
+)
+
 """
 #################-----------------GTSRBCOCO数据集-----------------#################
 # COCO_CLASSES = (
@@ -134,75 +199,3 @@ COCO_CLASSES_COCOori = (
 # )
 #
 #  """
-
-COCO_CLASSES_GTSRB = (
-    "speed limit 20 (prohibitory)",
-    "speed limit 30 (prohibitory)",
-    "speed limit 50 (prohibitory)",
-    "speed limit 60 (prohibitory)",
-    "speed limit 70 (prohibitory)",
-    "speed limit 80 (prohibitory)",
-    "restriction ends 80 (other)",
-    "speed limit 100 (prohibitory)",
-    "speed limit 120 (prohibitory)",
-    "no overtaking (prohibitory)",
-    "no overtaking (trucks) (prohibitory)",
-    "priority at next intersection (danger)",
-    "priority road (other)",
-    "give way (other)",
-    "stop (other)",
-    "no traffic both ways (prohibitory)",
-    "no trucks (prohibitory)",
-    "no entry (other)",
-    "danger (danger)",
-    "bend left (danger)",
-    "bend right (danger)",
-    "bend (danger)",
-    "uneven road (danger)",
-    "slippery road (danger)",
-    "road narrows (danger)",
-    "construction (danger)",
-    "traffic signal (danger)",
-    "pedestrian crossing (danger)",
-    "school crossing (danger)",
-    "cycles crossing (danger)",
-    "snow (danger)",
-    "animals (danger)",
-    "restriction ends (other)",
-    "go right (mandatory)",
-    "go left (mandatory)",
-    "go straight (mandatory)",
-    "go right or straight (mandatory)",
-    "go left or straight (mandatory)",
-    "keep right (mandatory)",
-    "keep left (mandatory)",
-    "roundabout (mandatory)",
-    "restriction ends (overtaking) (other)",
-    "restriction ends (overtaking (trucks)) (other)"
-)
-
-
-
-
-COCO_CLASSES_Visdrone = (
-# COCO_CLASSES = (
-    'pedestrian',
-    'people',
-    'bicycle',
-    'car',
-    'van',
-    'truck',
-    'tricycle',
-    'awning-tricycle',
-    'bus',
-    'motor'
-)
-
-##----------------SkyFusion数据集----------------##
-# COCO_CLASSES_SkyFusion = (
-COCO_CLASSES = (
-        "Aircraft",
-        "ship",
-        "vehicle")
-
-

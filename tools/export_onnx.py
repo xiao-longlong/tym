@@ -17,7 +17,7 @@ from yolox.utils import replace_module
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX onnx deploy")
     parser.add_argument(
-        "--output-name", type=str, default="100.onnx", help="output name of models"
+        "--output-name", type=str, default="100210022002300.onnx", help="output name of models"
     )
     parser.add_argument(
         "--input", default="images", type=str, help="input node name of onnx model"
@@ -26,7 +26,7 @@ def make_parser():
         "--output", default="output", type=str, help="output node name of onnx model"
     )
     parser.add_argument(
-        "-o", "--opset", default=11, type=int, help="onnx opset version"
+        "-o", "--opset", default=12, type=int, help="onnx opset version"
     )
     parser.add_argument("--batch-size", type=int, default=4, help="batch size")
     parser.add_argument(
@@ -36,13 +36,13 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default="/workspace/exps/example/custom/GTSRB_yoloxs_ours100.py",
+        default="/workspace/exps/example/custom/GTSRB_yoloxs_ours100210022002300.py",
         type=str,
         help="experiment description file",
     )
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
-    parser.add_argument("-c", "--ckpt", default="/workspace/YOLOX_outputs/GTSRB_100_09191032/best_ckpt.pth", type=str, help="ckpt path")
+    parser.add_argument("-c", "--ckpt", default="/workspace/YOLOX_outputs/GTSRB/GTSRB_100210022002300_09170845_4090/best_ckpt.pth", type=str, help="ckpt path")
     parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
