@@ -1,3 +1,13 @@
+300
+python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_300.py -n yolox-s -d 1 -b 4 -expn SkyFusion/SkyFusion300_092714_ayaka  --record_by_epoch --fp16
+
+python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_300.py -n yolox-s -d 1 -b 16 -expn SkyFusion/SkyFusion300_09271641_4090  --record_by_epoch --fp16
+
+
+2300 
+python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_2300.py -n yolox-s -d 1 -b 16 -expn SkyFusion/SkyFusion2300_09271432_ayaka_compare  --record_by_epoch --fp16
+
+
 ori
 python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn SkyFusionori_09192154  --fp16
 
@@ -10,9 +20,6 @@ python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_
 python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_22002300.py -n yolox-s -d 1 -b 32 -expn SkyFusion22002300_09192347  --fp16
 
 
-300
-计划是ori
-python /workspace/tools/train.py -f /workspace/exps/example/SkyFusion/SkyFusion_yoloxs_ori.py -n yolox-s -d 1 -b 16 -expn SkyFusionori_09192154  --fp16
 
 
 100

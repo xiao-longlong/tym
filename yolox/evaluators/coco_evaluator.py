@@ -315,11 +315,6 @@ class COCOEvaluator:
         return ourtcls_ratio
 
 
-        
-
-
-
-
     def evaluate(
         self, model, distributed=False, half=False, trt_file=None,
         decoder=None, test_size=None, return_outputs=False
