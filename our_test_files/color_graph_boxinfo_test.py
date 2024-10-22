@@ -37,28 +37,29 @@
 
 
 
-#--------------------------------------
-#查看图片像素
-from PIL import Image
+# #--------------------------------------
+# #查看图片像素
+# from PIL import Image
 
-# 打开图片
-image = Image.open('/workspace/layer_2.png')
+# # 打开图片
+# image = Image.open('/workspace/layer_2.png')
 
-# 获取图片的宽度和高度
-width, height = image.size
-print(f"Image size: {width}x{height}")
+# # 获取图片的宽度和高度
+# # width, height = image.size
+# width, height = image.size
+# print(f"Image size: {width}x{height}")
 
-# # 查看图片的某个像素的 RGB 值，例如 (x=10, y=10) 的像素
-# pixel_value = image.getpixel((10, 10))
-# print(f"Pixel at (10, 10): {pixel_value}")
+# # # 查看图片的某个像素的 RGB 值，例如 (x=10, y=10) 的像素
+# # pixel_value = image.getpixel((10, 10))
+# # print(f"Pixel at (10, 10): {pixel_value}")
 
-# # 如果你想遍历整个图像并查看所有像素值
-count = 0
-for y in range(height):
+# # # 如果你想遍历整个图像并查看所有像素值
+# count = 0
+# for y in range(height):
 
-    for x in range(width):
-        pixel_value = image.getpixel((x, y))
-        if pixel_value == (0, 0, 0) or pixel_value == (255, 0, 0):
-            count += 1
-            print(f"Pixel at ({x}, {y}): {pixel_value}")
-print("红黑框个数",count)
+#     for x in range(width):
+#         pixel_value = image.getpixel((x, y))
+#         if pixel_value == (0, 0, 0) or pixel_value == (255, 0, 0):
+#             count += 1
+#             print(f"Pixel at ({x}, {y}): {pixel_value}")
+# print("红黑框个数",count)

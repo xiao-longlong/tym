@@ -294,7 +294,7 @@ def main(tensor, num_gt, h_dynamic, w_dynamic):
 
             # 可视化每个图
             visualize_graph(coords, node_colors, edge_index, gt_layer, channel)
-
+    return output
 if __name__ == "__main__":
     # 假设 tensor 的维度为 num_gt * 3 * h_dynamic * w_dynamic_8
     num_gt = 2

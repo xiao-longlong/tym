@@ -22,7 +22,6 @@ from yolox.utils import meshgrid
 import torch.nn.functional as F
 
 from yolox.data.datasets import COCO_CLASSES, GTSRB_CLASSES, VisDrone_CLASSES, SkyFusion_CLASSES
-# from yolox.data.datasets import COCO_CLASSES, GTSRB_CLASSES, VisDrone_CLASSES, SkyFusion_CLASSES
 from yolox.utils import (
     gather,
     is_main_process,

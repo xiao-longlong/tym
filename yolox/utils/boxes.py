@@ -39,16 +39,15 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
     prediction[:, :, :4] = box_corner[:, :, :4]
 
     output = [None for _ in range(len(prediction))]
-    for i, image_pred in enumerate(prediction):
+    for i, image_pred in enumerate(prediction): #image_pred是一个batch中的一张图片
 
         # If none are remaining => process next image
         if not image_pred.size(0):
             continue
         # Get score and class with highest confidence,class_conf是置信度，class_pred是类别的index
         class_conf, class_pred = torch.max(image_pred[:, 5: 5 + num_classes], 1, keepdim=True)
-
+        #计算完obj_conf和class_conf相乘得到最终的置信度，再用置信度和阈值比较，得到mask
         conf_mask = (image_pred[:, 4] * class_conf.squeeze() >= conf_thre).squeeze()
-
         # Detections ordered as (x1, y1, x2, y2, obj_conf, class_conf, class_pred)
         detections = torch.cat((image_pred[:, :5], class_conf, class_pred.float()), 1)
         detections = detections[conf_mask]
@@ -58,9 +57,9 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
 
         if class_agnostic:#这种不按照类别去计算交并比，直接按照iou阈值去计算，自然筛下来框堆
             nms_out_index = torchvision.ops.nms(
-                detections[:, :4],
-                detections[:, 4] * detections[:, 5],
-                nms_thre,
+                detections[:, :4],   #框信息
+                detections[:, 4] * detections[:, 5],   #置信度=目标置信度*类别置信度
+                nms_thre,  #iou阈值
             )
         else:
             nms_out_index = torchvision.ops.batched_nms(  #这种按照类别去计算交并比
@@ -69,15 +68,13 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
                 detections[:, 6],  #类别的index
                 nms_thre,
             )
-
         detections = detections[nms_out_index]
-        # detections1 = detections1[nms_out_index]
         if output[i] is None:
+            # output[i] = detections
             output[i] = detections
-            # output[i] = detections1
         else:
+            # output[i] = torch.cat((output[i], detections))
             output[i] = torch.cat((output[i], detections))
-            # output[i] = torch.cat((output[i], detections1))
 
     return output
 
