@@ -129,6 +129,7 @@ class Exp(BaseExp):
         from yolox.models.yolo_head210022002300 import YOLOXHead210022002300
         from yolox.models.yolo_head100210022002300 import YOLOXHead100210022002300
         from yolox.models.yolo_head300 import YOLOXHead300
+        from yolox.models.fuse_advance.yolo_head210022002300ad import YOLOXHead210022002300AD
 
         def init_yolo(M):
             for m in M.modules():
@@ -168,6 +169,11 @@ class Exp(BaseExp):
                 head = YOLOXHead100210022002300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             elif self.ours == 300:
                 head = YOLOXHead300(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            elif self.ours == 2100220023009:
+                head = YOLOXHead210022002300AD(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            
+            
+            
             else:
                 head = YOLOXHeadori(self.num_classes, self.width, in_channels=in_channels, act=self.act)
             self.model = YOLOX(backbone, head)

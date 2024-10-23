@@ -20,6 +20,8 @@ from .yolo_head1002200 import YOLOXHead1002200
 from .yolo_head1002300 import YOLOXHead1002300
 from .yolo_head22002300 import YOLOXHead22002300
 from .yolo_head210022002300 import YOLOXHead210022002300
+from .fuse_advance.yolo_head210022002300ad import YOLOXHead210022002300AD
+
 from .yolo_head100210022002300 import YOLOXHead100210022002300
 from .yolo_head300 import YOLOXHead300
 
