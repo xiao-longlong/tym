@@ -126,8 +126,6 @@ class COCOEvaluator:
         box_corner[:, 2] = prediction[:, 0] + prediction[:, 2] / 2
         box_corner[:, 3] = prediction[:, 1] + prediction[:, 3] / 2
         prediction[:, :4] = box_corner[:, :4]
-
-
         return prediction
 
     def get_output_and_grid(self, hsize, wsize):
@@ -194,7 +192,7 @@ class COCOEvaluator:
             )
             matching_matrix[gt_idx][pos_idx] = 1
 
-        del topk_ious, dynamic_ks, pos_idx
+        del topk_ious, dynamic_ks
 
         anchor_matching_gt = matching_matrix.sum(0)#计算每个预测出的锚框匹配几个真值框
         # deal with the case that one anchor matches multiple ground-truths
@@ -236,11 +234,12 @@ class COCOEvaluator:
             ouroutput = self.ourpostprocess(ouroutput, self.num_classes)
 
             ourgt_bboxes_per_image = torch.from_numpy(self.dataloader.dataset.annotations[ouridx][0][:,:4]).cuda()
-            hsize, wsize = self.dataloader.dataset.annotations[ouridx][1]
+            
+            wsize, hsize = self.img_size
             grids = []
             for k in [8, 16, 32]:
-                ourhsize = int(hsize / k)
-                ourwsize = int(wsize / k)
+                ourhsize = int(hsize // k)
+                ourwsize = int(wsize // k)
                 # grid = self.get_output_and_grid(hsize, wsize, 'torch.cuda.HalfTensor')
                 grid = self.get_output_and_grid(ourhsize, ourwsize)
 
@@ -298,17 +297,18 @@ class COCOEvaluator:
                 + 3.0 * pair_wise_ious_loss
                 + float(1e6) * (~geometry_relation)
             )
-
-        
-            num_fg2, matching_matrix = self.oursimota_matching(ourcost, ourpair_wise_ious, gt_classes, num_gt, fg_mask)
-            ourindices = torch.nonzero(matching_matrix == 1)
-            ourpoints = [(index[0].item(), index[1].item()) for index in ourindices]
-            fenzi = 0
-            for point in ourpoints:
-                if ourclsidxes_preds_per_image.squeeze(-1)[point[1]] == gt_classes[point[0]]:
-                    fenzi += 1
-            allfenzi += fenzi
-            allfenmu += num_fg2
+            if num_gt == 0:
+                continue
+            else:
+                num_fg2, matching_matrix = self.oursimota_matching(ourcost, ourpair_wise_ious, gt_classes, num_gt, fg_mask)
+                ourindices = torch.nonzero(matching_matrix == 1)
+                ourpoints = [(index[0].item(), index[1].item()) for index in ourindices]
+                fenzi = 0
+                for point in ourpoints:
+                    if ourclsidxes_preds_per_image.squeeze(-1)[point[1]] == gt_classes[point[0]]:
+                        fenzi += 1
+                allfenzi += fenzi
+                allfenmu += num_fg2
         if allfenmu != 0:
             ourtcls_ratio = allfenzi / allfenmu
         return ourtcls_ratio

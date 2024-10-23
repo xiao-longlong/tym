@@ -377,8 +377,6 @@ class YOLOXHead210022002300AD(nn.Module):
             obj_feat =  ourobj_atten * obj_feat
             obj_output = self.obj_preds[k](obj_feat)
                 
-
-
             if self.training:
                 output = torch.cat([reg_output, obj_output, cls_output], 1)
                 output, grid = self.get_output_and_grid(

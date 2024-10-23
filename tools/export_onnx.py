@@ -17,7 +17,7 @@ from yolox.utils import replace_module
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX onnx deploy")
     parser.add_argument(
-        "--output-name", type=str, default="yolox.onnx", help="output name of models"
+        "--output-name", type=str, default="totym2101.onnx", help="output name of models"
     )
     parser.add_argument(
         "--input", default="images", type=str, help="input node name of onnx model"
@@ -36,13 +36,13 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default="/workspace/exps/default/yolox_s.py",
+        default="/workspace/exps/example/custom/GTSRB_yoloxs_ours2101.py",
         type=str,
         help="experiment description file",
     )
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
-    parser.add_argument("-c", "--ckpt", default="/workspace/yolox_s.pth", type=str, help="ckpt path")
+    parser.add_argument("-c", "--ckpt", default="/data/Outputs/oursyoloxoutput/GTSRB_210022002300ad/latest_ckpt.pth", type=str, help="ckpt path")
     parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
